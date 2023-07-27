@@ -1,12 +1,19 @@
 package main
 
 import (
-	"core"
 	"fmt"
+
+	"github.com/mngrf/my-internet-guy/internal/core"
 )
 
 func main() {
-	n := core.Neuron{}
+	X := []float64{1, 2, 3}
 
-	fmt.Println("a ...any", n)
+	lstm := core.NewLSTM(len(X), len(X))
+
+	fmt.Print(lstm.Forward(X), "\n")
+	fmt.Print(lstm.Forward(X), "\n")
+	fmt.Print(lstm.Forward(X), "\n")
+	fmt.Print(lstm.Forward(X), "\n")
+	fmt.Print(lstm.Forward(X), "\n")
 }

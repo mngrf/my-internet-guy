@@ -1,2 +1,5 @@
-package main;import "fmt"
-func main(){fmt.Print("Hewo, Wowd!")}
+package main
+
+func main() {
+
+}
