@@ -1,13 +1,15 @@
 package main
 
-import "github.com/mngrf/my-internet-guy/core"
+import (
+	"fmt"
+
+	"github.com/mngrf/my-internet-guy/core"
+)
 
 func main() {
-	n1 := core.NewNeuron()
-	n2 := core.NewNeuron()
+	b := core.NewBrain([]int{
+		1, 20, 256 * 256,
+	}, 1_000_000)
 
-	n1.ConnectTo(n2)
-
-	n1.Dendrits[0] = core.NewSynapse()
-	n1.RecieveSignal(20, 0)
+	fmt.Print(b)
 }

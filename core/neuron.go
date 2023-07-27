@@ -39,8 +39,8 @@ func (n *Neuron) RecieveSignal(signal float64, dendritPort int) {
 	}
 }
 
-func NewNeuron() *Neuron {
-	return &Neuron{
+func NewNeuron() Neuron {
+	return Neuron{
 		Dendrits:          map[int]Synapse{},
 		MembranePotential: 30,
 		Treshold:          42,
