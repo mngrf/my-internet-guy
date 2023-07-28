@@ -1,56 +1,60 @@
 package core
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Neuron struct {
-	Dendrits map[int]Synapse
-
+	Dendrites         map[int]Synapse
 	MembranePotential float64
-	Treshold          float64
-
-	Axon Axon
+	Threshold         float64
+	Axon              Axon
 }
 
 func (n *Neuron) Fire() {
-	for neuron, port := range n.Axon.Terminal {
-		neuron.RecieveSignal(n.MembranePotential, port)
+	fmt.Println("Fire")
+	for synapse, port := range n.Axon.Terminal {
+		synapse.RecieveSignal(n.MembranePotential, port)
 	}
-
-	fmt.Println("Fire!")
 
 	n.MembranePotential = 0
 }
 
-func (n *Neuron) ConnectTo(neuron *Neuron) {
-	connPort := neuron.getFreePort()
-
-	neuron.Dendrits[connPort] = NewSynapse()
-
-	n.Axon.Terminal[neuron] = connPort
+func (n *Neuron) AddInputConnection(port int) {
+	n.Dendrites[port] = NewSynapse()
 }
 
-func (n *Neuron) RecieveSignal(signal float64, dendritPort int) {
-	signal = signal + n.Dendrits[dendritPort].Bias
+func (n *Neuron) ConnectTo(synapse SignalReciever) {
+	connPort := n.GetFreePort()
+
+	n.Dendrites[connPort] = NewSynapse()
+
+	n.Axon.Terminal[synapse] = connPort
+}
+
+func (n *Neuron) RecieveSignal(signal float64, dendritePort int) {
+	fmt.Println("Neuron recieved signal!")
+	signal = signal + n.Dendrites[dendritePort].Bias
 
 	n.MembranePotential += signal
 
-	if n.MembranePotential > n.Treshold {
+	if n.MembranePotential > n.Threshold {
 		n.Fire()
 	}
 }
 
 func NewNeuron() Neuron {
 	return Neuron{
-		Dendrits:          map[int]Synapse{},
+		Dendrites:         make(map[int]Synapse),
 		MembranePotential: 30,
-		Treshold:          42,
+		Threshold:         42,
 		Axon:              NewAxon(),
 	}
 }
 
-func (n *Neuron) getFreePort() int {
+func (n *Neuron) GetFreePort() int {
 	for i := 0; ; i++ {
-		if _, exist := n.Dendrits[i]; !exist {
+		if _, exist := n.Dendrites[i]; !exist {
 			return i
 		}
 	}
@@ -68,12 +72,18 @@ func NewSynapse() Synapse {
 
 type Axon struct {
 	Bias     float64
-	Terminal map[*Neuron]int
+	Terminal map[SignalReciever]int
 }
 
 func NewAxon() Axon {
 	return Axon{
 		Bias:     0,
-		Terminal: map[*Neuron]int{},
+		Terminal: make(map[SignalReciever]int),
 	}
+}
+
+type SignalReciever interface {
+	AddInputConnection(int)
+	GetFreePort() int
+	RecieveSignal(signal float64, dendritePort int)
 }
