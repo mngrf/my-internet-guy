@@ -1,19 +1,15 @@
 package core
 
-import "fmt"
-
 type Brain struct {
-	Organs  [][]float64
+	Organs  []Organ
 	Neurons []Neuron
-	Muscles []func(float64)
+	Muscles []Muscle
 }
 
-func Move(signal float64) { fmt.Println("Moved: ", signal) }
-
-func NewBrain(organShapes []int, neuronsCount int) *Brain {
-	organs := make([][]float64, len(organShapes))
+func NewBrain(organShapes, muscleShapes []int, neuronsCount int) *Brain {
+	organs := make([]Organ, len(organShapes))
 	for i := 0; i < len(organShapes); i++ {
-		organs[i] = make([]float64, organShapes[i])
+		organs[i] = NewOrgan(organShapes[i])
 	}
 
 	neurons := make([]Neuron, neuronsCount)
@@ -21,11 +17,14 @@ func NewBrain(organShapes []int, neuronsCount int) *Brain {
 		neurons[i] = NewNeuron()
 	}
 
-	brain := &Brain{
-		Organs:  organs,
-		Neurons: neurons,
-		Muscles: []func(float64){Move},
+	muscles := make([]Muscle, len(muscleShapes))
+	for i := 0; i < len(muscleShapes); i++ {
+		muscles[i] = NewMuscle(muscleShapes[i])
 	}
 
-	return brain
+	return &Brain{
+		Organs:  organs,
+		Neurons: neurons,
+		Muscles: muscles,
+	}
 }

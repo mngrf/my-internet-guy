@@ -28,9 +28,9 @@ func (m *Muscle) GetFreePort() int {
 	}
 }
 
-func NewMuscle() *Muscle {
-	return &Muscle{
+func NewMuscle(shape int) Muscle {
+	return Muscle{
 		Synapses:     map[int]Synapse{},
-		muscleMemory: map[int]float64{},
+		muscleMemory: make(map[int]float64, shape),
 	}
 }

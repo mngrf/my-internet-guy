@@ -5,12 +5,13 @@ import (
 )
 
 type Organ struct {
+	Shape    int
 	Terminal map[int]SignalReciever
 }
 
 func (o *Organ) SendSignals(signals []float64) {
 	fmt.Println("Organ sended signal!")
-	if len(signals) != len(o.Terminal) {
+	if len(signals) != o.Shape {
 		panic("Shapes does not match!")
 	}
 
@@ -23,9 +24,10 @@ func (o *Organ) SendSignals(signals []float64) {
 	}
 }
 
-func NewOrgan() *Organ {
-	return &Organ{
-		Terminal: map[int]SignalReciever{},
+func NewOrgan(shape int) Organ {
+	return Organ{
+		Shape:    shape,
+		Terminal: make(map[int]SignalReciever, shape),
 	}
 }
 
