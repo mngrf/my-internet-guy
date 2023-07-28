@@ -13,12 +13,34 @@ type Brain struct {
 func (b *Brain) ConnectOrgansToNeurons() {
 	neuronsCount := len(b.Neurons)
 
-	for i, _ := range b.Organs {
-		b.Organs[i].ConnectTo(&b.Neurons[rand.Intn(neuronsCount)])
+	for i := 0; i < len(b.Organs); i++ {
+		for j := 0; j < b.Organs[i].Shape; j++ {
+			b.Organs[i].ConnectTo(&b.Neurons[rand.Intn(neuronsCount)])
+		}
 	}
 }
 
 func (b *Brain) ConnectMusclesToNeurons() {
+	neuronsCount := len(b.Neurons)
+
+	for i := 0; i < len(b.Muscles); i++ {
+		for j := 0; j < b.Muscles[i].Shape; j++ {
+			b.Neurons[rand.Intn(neuronsCount)].ConnectTo(&b.Muscles[i])
+		}
+	}
+}
+
+func (b *Brain) ProcessSignals(signals [][]float64) {
+	if len(signals) != len(b.Organs) {
+		panic("Shapes does not match")
+	}
+
+	for i := 0; i < len(signals); i++ {
+		b.Organs[i].SendSignals(signals[i])
+	}
+}
+
+func (b *Brain) ConnectNeurons() {
 
 }
 
@@ -38,9 +60,14 @@ func NewBrain(organShapes, muscleShapes []int, neuronsCount int) *Brain {
 		muscles[i] = NewMuscle(muscleShapes[i])
 	}
 
-	return &Brain{
+	brain := Brain{
 		Organs:  organs,
 		Neurons: neurons,
 		Muscles: muscles,
 	}
+
+	brain.ConnectOrgansToNeurons()
+	brain.ConnectMusclesToNeurons()
+
+	return &brain
 }

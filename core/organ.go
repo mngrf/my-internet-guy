@@ -10,16 +10,19 @@ type Organ struct {
 }
 
 func (o *Organ) SendSignals(signals []float64) {
-	fmt.Println("Organ sended signal!")
+	fmt.Println("Organ has sent the signals")
 	if len(signals) != o.Shape {
 		panic("Shapes does not match!")
 	}
 
+	if len(signals) != len(o.Terminal) {
+		fmt.Println(signals, o.Terminal)
+		panic("Shapes does not match!")
+	}
+
 	var i int = 0
-
-	for port, synapse := range o.Terminal {
-		synapse.RecieveSignal(signals[i], port)
-
+	for port, conn := range o.Terminal {
+		conn.RecieveSignal(signals[i], port)
 		i++
 	}
 }

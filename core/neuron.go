@@ -13,7 +13,7 @@ type Neuron struct {
 
 func (n *Neuron) Fire() {
 	fmt.Println("Fire")
-	for synapse, port := range n.Axon.Terminal {
+	for port, synapse := range n.Axon.Terminal {
 		synapse.RecieveSignal(n.MembranePotential, port)
 	}
 
@@ -25,7 +25,7 @@ func (n *Neuron) AddInputConnection(port int) {
 }
 
 func (n *Neuron) AddOutputConnection(sr SignalReciever, port int) {
-	n.Axon.Terminal[sr] = port
+	n.Axon.Terminal[port] = sr
 }
 
 func (n *Neuron) ConnectTo(synapse SignalReciever) {
@@ -33,11 +33,10 @@ func (n *Neuron) ConnectTo(synapse SignalReciever) {
 
 	n.Dendrites[connPort] = NewSynapse()
 
-	n.Axon.Terminal[synapse] = connPort
+	n.Axon.Terminal[connPort] = synapse
 }
 
 func (n *Neuron) RecieveSignal(signal float64, dendritePort int) {
-	fmt.Println("Neuron recieved signal!")
 	signal = signal + n.Dendrites[dendritePort].Bias
 
 	n.MembranePotential += signal
@@ -76,13 +75,13 @@ func NewSynapse() Synapse {
 
 type Axon struct {
 	Bias     float64
-	Terminal map[SignalReciever]int
+	Terminal map[int]SignalReciever
 }
 
 func NewAxon() Axon {
 	return Axon{
 		Bias:     0,
-		Terminal: make(map[SignalReciever]int),
+		Terminal: make(map[int]SignalReciever),
 	}
 }
 

@@ -5,15 +5,16 @@ import (
 )
 
 type Muscle struct {
+	Shape        int
 	Synapses     map[int]Synapse
-	muscleMemory map[int]float64
+	MuscleMemory map[int]float64
 }
 
 func (m *Muscle) RecieveSignal(signal float64, synapsePort int) {
 	fmt.Println("Muscle recieved signal!")
 	signal = signal + m.Synapses[synapsePort].Bias
 
-	m.muscleMemory[synapsePort] = signal
+	m.MuscleMemory[synapsePort] = signal
 }
 
 func (m *Muscle) AddInputConnection(port int) {
@@ -30,7 +31,8 @@ func (m *Muscle) GetFreePort() int {
 
 func NewMuscle(shape int) Muscle {
 	return Muscle{
+		Shape:        shape,
 		Synapses:     map[int]Synapse{},
-		muscleMemory: make(map[int]float64, shape),
+		MuscleMemory: make(map[int]float64, shape),
 	}
 }
