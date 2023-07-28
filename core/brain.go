@@ -1,9 +1,25 @@
 package core
 
+import (
+	"math/rand"
+)
+
 type Brain struct {
 	Organs  []Organ
 	Neurons []Neuron
 	Muscles []Muscle
+}
+
+func (b *Brain) ConnectOrgansToNeurons() {
+	neuronsCount := len(b.Neurons)
+
+	for i, _ := range b.Organs {
+		b.Organs[i].ConnectTo(&b.Neurons[rand.Intn(neuronsCount)])
+	}
+}
+
+func (b *Brain) ConnectMusclesToNeurons() {
+
 }
 
 func NewBrain(organShapes, muscleShapes []int, neuronsCount int) *Brain {

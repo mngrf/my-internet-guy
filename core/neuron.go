@@ -24,6 +24,10 @@ func (n *Neuron) AddInputConnection(port int) {
 	n.Dendrites[port] = NewSynapse()
 }
 
+func (n *Neuron) AddOutputConnection(sr SignalReciever, port int) {
+	n.Axon.Terminal[sr] = port
+}
+
 func (n *Neuron) ConnectTo(synapse SignalReciever) {
 	connPort := n.GetFreePort()
 
