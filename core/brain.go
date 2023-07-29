@@ -30,6 +30,20 @@ func (b *Brain) ConnectMusclesToNeurons() {
 	}
 }
 
+func (b *Brain) ConnectNeurons() {
+	neuronsCount := len(b.Neurons)
+
+	if neuronsCount < 2 {
+		return
+	}
+
+	for i := 0; i < neuronsCount; i++ {
+		b.Neurons[i].ConnectTo(
+			&b.Neurons[rand.Intn(neuronsCount)],
+		)
+	}
+}
+
 func (b *Brain) ProcessSignals(signals [][]float64) {
 	if len(signals) != len(b.Organs) {
 		panic("Shapes does not match")
@@ -38,10 +52,6 @@ func (b *Brain) ProcessSignals(signals [][]float64) {
 	for i := 0; i < len(signals); i++ {
 		b.Organs[i].SendSignals(signals[i])
 	}
-}
-
-func (b *Brain) ConnectNeurons() {
-
 }
 
 func NewBrain(organShapes, muscleShapes []int, neuronsCount int) *Brain {
@@ -67,6 +77,7 @@ func NewBrain(organShapes, muscleShapes []int, neuronsCount int) *Brain {
 	}
 
 	brain.ConnectOrgansToNeurons()
+	brain.ConnectNeurons()
 	brain.ConnectMusclesToNeurons()
 
 	return &brain

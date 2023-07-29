@@ -18,10 +18,13 @@ func (m *Muscle) RecieveSignal(signal float64, synapsePort int) {
 }
 
 func (m *Muscle) AddInputConnection(port int) {
-	m.Synapses[port] = NewSynapse()
+	m.Synapses[port] = Synapse{
+		Bias: -15, // TODO: delete and add neurotransmitters functional
+	}
 }
 
 func (m *Muscle) GetFreePort() int {
+	fmt.Println("free port")
 	for i := 0; ; i++ {
 		if _, exist := m.Synapses[i]; !exist {
 			return i

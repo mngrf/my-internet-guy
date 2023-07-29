@@ -6,7 +6,16 @@ import (
 
 type Organ struct {
 	Shape    int
-	Terminal map[int]SignalReciever
+	Terminal []BioAddr
+}
+
+type BioAddr struct {
+	Synapse SignalReciever
+	port    int
+}
+
+func (ba *BioAddr) SendSignal(signal float64) {
+	ba.Synapse.RecieveSignal(signal, ba.port)
 }
 
 func (o *Organ) SendSignals(signals []float64) {
@@ -16,27 +25,28 @@ func (o *Organ) SendSignals(signals []float64) {
 	}
 
 	if len(signals) != len(o.Terminal) {
-		fmt.Println(signals, o.Terminal)
+		fmt.Println(len(signals), len(o.Terminal))
 		panic("Shapes does not match!")
 	}
 
-	var i int = 0
-	for port, conn := range o.Terminal {
-		conn.RecieveSignal(signals[i], port)
-		i++
+	for i := 0; i < len(o.Terminal); i++ {
+		o.Terminal[i].SendSignal(signals[i])
 	}
 }
 
 func NewOrgan(shape int) Organ {
 	return Organ{
 		Shape:    shape,
-		Terminal: make(map[int]SignalReciever, shape),
+		Terminal: []BioAddr{},
 	}
 }
 
 func (o *Organ) ConnectTo(synapse SignalReciever) {
 	connPort := synapse.GetFreePort()
 
-	o.Terminal[connPort] = synapse
 	synapse.AddInputConnection(connPort)
+	o.Terminal = append(o.Terminal, BioAddr{
+		Synapse: synapse,
+		port:    connPort,
+	})
 }
