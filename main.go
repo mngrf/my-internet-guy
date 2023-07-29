@@ -16,6 +16,5 @@ func main() {
 	)
 
 	brain.LoadSignals(data)
-
 	brain.Run()
 }
