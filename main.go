@@ -6,16 +6,16 @@ import (
 
 func main() {
 	data := []float64{
-		100,
+		42,
 	}
 
 	brain := core.NewBrain(
 		[]int{len(data)},
-		[]int{1},
-		1,
+		[]int{2},
+		1_000_000,
 	)
 
 	brain.LoadSignals([][]float64{data})
-	brain.Tick()
-	brain.Tick()
+
+	brain.Run()
 }

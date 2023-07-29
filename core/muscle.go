@@ -1,9 +1,5 @@
 package core
 
-import (
-	"fmt"
-)
-
 type Muscle struct {
 	Shape        int
 	Synapses     map[int]Synapse
@@ -11,7 +7,7 @@ type Muscle struct {
 }
 
 func (m *Muscle) RecieveSignal(signal float64, synapsePort int) {
-	fmt.Println("Muscle recieved signal!")
+	// fmt.Println("Muscle recieved signal!")
 	signal = signal + m.Synapses[synapsePort].Bias
 
 	m.MuscleMemory[synapsePort] = signal
@@ -24,7 +20,7 @@ func (m *Muscle) AddInputConnection(port int) {
 }
 
 func (m *Muscle) GetFreePort() int {
-	fmt.Println("free port")
+	// fmt.Println("free port")
 	for i := 0; ; i++ {
 		if _, exist := m.Synapses[i]; !exist {
 			return i

@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"math/rand"
+	"time"
 )
 
 type Brain struct {
@@ -12,7 +13,7 @@ type Brain struct {
 	Muscles      []Muscle
 }
 
-func (b *Brain) ConnectOrgansToNeurons() {
+func (b *Brain) connectOrgansToNeurons() {
 	neuronsCount := len(b.Neurons)
 
 	for i := 0; i < len(b.Organs); i++ {
@@ -22,7 +23,7 @@ func (b *Brain) ConnectOrgansToNeurons() {
 	}
 }
 
-func (b *Brain) ConnectMusclesToNeurons() {
+func (b *Brain) connectMusclesToNeurons() {
 	neuronsCount := len(b.Neurons)
 
 	for i := 0; i < len(b.Muscles); i++ {
@@ -33,20 +34,34 @@ func (b *Brain) ConnectMusclesToNeurons() {
 }
 
 func (b *Brain) Tick() {
-	for i := 0; i < b.neuronsCount; i++ {
-		b.Neurons[i].Process()
-	}
-
 	for i := 0; i < len(b.Organs); i++ {
 		b.Organs[i].ProcessSignals()
 	}
 
+	for i := 0; i < b.neuronsCount; i++ {
+		b.Neurons[i].Process()
+	}
+
 	for i := 0; i < len(b.Muscles); i++ {
-		fmt.Println(b.Muscles[i].MuscleMemory) // TODO: handle muscles buffers
+		// fmt.Println("muscle buffer: ", b.Muscles[i].MuscleMemory) // TODO: handle muscles buffers
 	}
 }
 
-func (b *Brain) ConnectNeurons() {
+func (b *Brain) Run() {
+	startTime := time.Now() // Record the current time (start time)
+
+	for i := 0; i < 60; i++ {
+		b.Tick() // Call the 'Tick' method of the 'Brain' struct
+	}
+
+	endTime := time.Now() // Record the current time (end time)
+
+	elapsedTime := endTime.Sub(startTime) // Calculate the time difference between start and end time
+
+	fmt.Println(elapsedTime, b.Muscles[0].MuscleMemory) // Print the elapsed time
+}
+
+func (b *Brain) connectNeurons() {
 	neuronsCount := len(b.Neurons)
 
 	if neuronsCount < 2 {
@@ -100,9 +115,9 @@ func NewBrain(organShapes, muscleShapes []int, neuronsCount int) *Brain {
 		Muscles:      muscles,
 	}
 
-	brain.ConnectOrgansToNeurons()
-	brain.ConnectNeurons()
-	brain.ConnectMusclesToNeurons()
+	brain.connectOrgansToNeurons()
+	brain.connectNeurons()
+	brain.connectMusclesToNeurons()
 
 	return &brain
 }
