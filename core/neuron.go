@@ -1,8 +1,6 @@
 package core
 
-import (
-	"fmt"
-)
+import "fmt"
 
 type Neuron struct {
 	Dendrites         map[int]Synapse
@@ -13,7 +11,6 @@ type Neuron struct {
 
 func (n *Neuron) Fire() {
 	fmt.Println("Fire")
-
 	for i := 0; i < len(n.Axon.Terminal); i++ {
 		n.Axon.Terminal[i].Synapse.RecieveSignal(
 			n.MembranePotential,
@@ -46,15 +43,17 @@ func (n *Neuron) ConnectTo(synapse SignalReciever) {
 	synapse.AddInputConnection(connPort)
 }
 
+func (n *Neuron) Process() {
+	if n.MembranePotential > n.Threshold {
+		n.Fire()
+	}
+}
+
 func (n *Neuron) RecieveSignal(signal float64, dendritePort int) {
 	fmt.Println("Neuron recieved signal")
 	signal = signal + n.Dendrites[dendritePort].Bias
 
 	n.MembranePotential += signal
-
-	if n.MembranePotential > n.Threshold {
-		n.Fire()
-	}
 }
 
 func NewNeuron() Neuron {

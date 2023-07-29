@@ -1,13 +1,15 @@
 package core
 
 import (
+	"fmt"
 	"math/rand"
 )
 
 type Brain struct {
-	Organs  []Organ
-	Neurons []Neuron
-	Muscles []Muscle
+	Organs       []Organ
+	neuronsCount int
+	Neurons      []Neuron
+	Muscles      []Muscle
 }
 
 func (b *Brain) ConnectOrgansToNeurons() {
@@ -27,6 +29,20 @@ func (b *Brain) ConnectMusclesToNeurons() {
 		for j := 0; j < b.Muscles[i].Shape; j++ {
 			b.Neurons[rand.Intn(neuronsCount)].ConnectTo(&b.Muscles[i])
 		}
+	}
+}
+
+func (b *Brain) Tick() {
+	for i := 0; i < b.neuronsCount; i++ {
+		b.Neurons[i].Process()
+	}
+
+	for i := 0; i < len(b.Organs); i++ {
+		b.Organs[i].ProcessSignals()
+	}
+
+	for i := 0; i < len(b.Muscles); i++ {
+		fmt.Println(b.Muscles[i].MuscleMemory) // TODO: handle muscles buffers
 	}
 }
 
@@ -50,8 +66,15 @@ func (b *Brain) ProcessSignals(signals [][]float64) {
 	}
 
 	for i := 0; i < len(signals); i++ {
-		b.Organs[i].SendSignals(signals[i])
+		b.Organs[i].ProcessSignals()
 	}
+}
+
+func (b *Brain) LoadSignals(signals [][]float64) {
+	for i := 0; i < len(b.Organs); i++ {
+		b.Organs[i].LoadSignals(signals[i])
+	}
+
 }
 
 func NewBrain(organShapes, muscleShapes []int, neuronsCount int) *Brain {
@@ -71,9 +94,10 @@ func NewBrain(organShapes, muscleShapes []int, neuronsCount int) *Brain {
 	}
 
 	brain := Brain{
-		Organs:  organs,
-		Neurons: neurons,
-		Muscles: muscles,
+		Organs:       organs,
+		neuronsCount: neuronsCount,
+		Neurons:      neurons,
+		Muscles:      muscles,
 	}
 
 	brain.ConnectOrgansToNeurons()

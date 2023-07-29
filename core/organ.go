@@ -1,12 +1,17 @@
 package core
 
-import (
-	"fmt"
-)
-
 type Organ struct {
-	Shape    int
-	Terminal []BioAddr
+	Shape     int
+	tempStore []float64
+	Terminal  []BioAddr
+}
+
+func (o *Organ) LoadSignals(signals []float64) {
+	if len(signals) != o.Shape {
+		return
+	}
+
+	o.tempStore = signals
 }
 
 type BioAddr struct {
@@ -18,19 +23,12 @@ func (ba *BioAddr) SendSignal(signal float64) {
 	ba.Synapse.RecieveSignal(signal, ba.port)
 }
 
-func (o *Organ) SendSignals(signals []float64) {
-	fmt.Println("Organ has sent the signals")
-	if len(signals) != o.Shape {
-		panic("Shapes does not match!")
-	}
-
-	if len(signals) != len(o.Terminal) {
-		fmt.Println(len(signals), len(o.Terminal))
-		panic("Shapes does not match!")
-	}
-
-	for i := 0; i < len(o.Terminal); i++ {
-		o.Terminal[i].SendSignal(signals[i])
+func (o *Organ) ProcessSignals() {
+	for i := 0; i < o.Shape; i++ {
+		o.Terminal[i].Synapse.RecieveSignal(
+			o.tempStore[i],
+			o.Terminal[i].port,
+		)
 	}
 }
 

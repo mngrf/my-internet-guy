@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/mngrf/my-internet-guy/core"
 )
 
@@ -13,11 +11,11 @@ func main() {
 
 	brain := core.NewBrain(
 		[]int{len(data)},
-		[]int{3, 2},
+		[]int{1},
 		1,
 	)
 
-	brain.ProcessSignals([][]float64{data})
-
-	fmt.Println(brain.Muscles)
+	brain.LoadSignals([][]float64{data})
+	brain.Tick()
+	brain.Tick()
 }
