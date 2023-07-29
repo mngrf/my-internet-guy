@@ -15,7 +15,7 @@ func main() {
 		1_000_000,
 	)
 
-	brain.LoadSignals([][]float64{data})
+	brain.LoadSignals(data)
 
 	brain.Run()
 }

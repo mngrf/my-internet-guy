@@ -85,7 +85,11 @@ func (b *Brain) ProcessSignals(signals [][]float64) {
 	}
 }
 
-func (b *Brain) LoadSignals(signals [][]float64) {
+func (b *Brain) LoadSignals(signals ...[]float64) {
+	if len(signals) != len(b.Organs) {
+		panic("Shapes do not match!")
+	}
+
 	for i := 0; i < len(b.Organs); i++ {
 		b.Organs[i].LoadSignals(signals[i])
 	}
