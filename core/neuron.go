@@ -113,6 +113,7 @@ type SignalReciever interface {
 	GetFreePort() int
 	RecieveSignal(signal float64, dendritePort int)
 	Type() BioType
+	GetAllConnections() []SignalReciever
 }
 
 type BioType [2]bool // can store up to 4 types, we need only 3 organ, neuron, muscle

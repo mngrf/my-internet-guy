@@ -33,6 +33,16 @@ func (o *Organ) ProcessSignals() {
 	}
 }
 
+func (o *Organ) GetAllConnections() []SignalReciever {
+	sr := make([]SignalReciever, len(o.Terminal))
+
+	for i := 0; i < len(o.Terminal); i++ {
+		sr[i] = o.Terminal[i].Synapse
+	}
+
+	return sr
+}
+
 func (o *Organ) Type() BioType {
 	return o.biotype
 }

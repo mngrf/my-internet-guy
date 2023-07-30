@@ -20,6 +20,10 @@ func (m *Muscle) AddInputConnection(port int) {
 	}
 }
 
+func (m *Muscle) GetAllConnections() []SignalReciever {
+	return []SignalReciever{}
+}
+
 func (m *Muscle) Type() BioType {
 	return m.biotype
 }

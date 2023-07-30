@@ -33,6 +33,56 @@ func (b *Brain) connectMusclesToNeurons() {
 	}
 }
 
+func (b *Brain) allInputsToAllOutputs() bool {
+	result := make([]bool, len(b.Organs))
+
+	for i := 0; i < len(b.Organs); i++ {
+		result[i] = b.organInputToOutputs(&b.Organs[i])
+	}
+
+	for i := 0; i < len(result); i++ {
+		if !result[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (b *Brain) organInputToOutputs(organ *Organ) bool {
+	cheked := make(map[*SignalReciever]bool)
+
+	var results []bool = []bool{}
+
+	for i := 0; i < len(organ.Terminal); i++ {
+		b.neuronInputToOutputs(organ.Terminal[i].Synapse, &cheked, &results)
+	}
+
+	for _, result := range results {
+		if result {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (b *Brain) neuronInputToOutputs(sr SignalReciever, cheked *map[*SignalReciever]bool, results *[]bool) {
+	if sr.Type().EqualTo(NewBioTypeMuscle()) {
+		*results = append(*results, true)
+	}
+
+	(*cheked)[&sr] = true
+
+	for _, conn := range sr.GetAllConnections() {
+		if (*cheked)[&conn] {
+			continue
+		}
+
+		b.neuronInputToOutputs(conn, cheked, results)
+	}
+}
+
 func (b *Brain) Tick() {
 	for i := 0; i < len(b.Organs); i++ {
 		b.Organs[i].ProcessSignals()
@@ -46,10 +96,6 @@ func (b *Brain) Tick() {
 		// fmt.Println("muscle buffer: ", b.Muscles[i].MuscleMemory) // TODO: handle muscles buffers
 	}
 }
-
-// func (b *Brain) EnsureAllInputsOutputs() {
-
-// }
 
 func (b *Brain) Run() {
 	startTime := time.Now() // Record the current time (start time)
@@ -124,8 +170,16 @@ func NewBrain(organShapes, muscleShapes []int, neuronsCount int) *Brain {
 	}
 
 	brain.connectOrgansToNeurons()
-	brain.connectNeurons()
 	brain.connectMusclesToNeurons()
+
+	for {
+		if !brain.allInputsToAllOutputs() {
+			brain.connectNeurons()
+			continue
+		}
+
+		break
+	}
 
 	return &brain
 }
