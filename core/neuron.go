@@ -10,9 +10,12 @@ type Neuron struct {
 
 func (n *Neuron) Fire() {
 	// fmt.Println("Fire")
+
+	signal := n.MembranePotential / float64(len(n.Axon.Terminal))
+
 	for i := 0; i < len(n.Axon.Terminal); i++ {
 		n.Axon.Terminal[i].Synapse.RecieveSignal(
-			n.MembranePotential,
+			signal,
 			n.Axon.Terminal[i].port,
 		)
 	}
@@ -33,7 +36,7 @@ func (n *Neuron) AddOutputConnection(sr SignalReciever, port int) {
 
 func (n *Neuron) GetAllConnections() []SignalReciever {
 	conns := make([]SignalReciever, len(n.Axon.Terminal))
-	for i := 0; i < len(n.Axon.Terminal); i++ {
+	for i := 0; i < len(conns); i++ {
 		conns[i] = n.Axon.Terminal[i].Synapse
 	}
 
@@ -72,7 +75,7 @@ func NewNeuron() Neuron {
 	return Neuron{
 		biotype:           NewBioTypeNeuron(),
 		Dendrites:         make(map[int]Synapse),
-		MembranePotential: 30,
+		MembranePotential: 0,
 		Threshold:         42,
 		Axon:              NewAxon(),
 	}
@@ -116,7 +119,7 @@ type SignalReciever interface {
 	GetAllConnections() []SignalReciever
 }
 
-type BioType [2]bool // can store up to 4 types, we need only 3 organ, neuron, muscle
+type BioType [2]bool // can store up to 4 types, we need only 3 - organ, neuron, muscle
 
 func NewBioTypeOrgan() BioType {
 	return BioType{false, false}

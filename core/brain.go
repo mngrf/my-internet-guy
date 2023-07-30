@@ -7,12 +7,19 @@ import (
 )
 
 type Brain struct {
-	Organs       []Organ
+	organsCount  int
 	neuronsCount int
-	Neurons      []Neuron
-	Muscles      []Muscle
+	musclesCount int
+
+	Organs  []Organ
+	Neurons []Neuron
+	Muscles []Muscle
+
+	visited       map[SignalReciever]bool
+	unreachedOuts []*Muscle
 }
 
+// Connects random neuron to each organ's outputs
 func (b *Brain) connectOrgansToNeurons() {
 	neuronsCount := len(b.Neurons)
 
@@ -33,58 +40,58 @@ func (b *Brain) connectMusclesToNeurons() {
 	}
 }
 
-func (b *Brain) allInputsToAllOutputs() bool {
-	result := make([]bool, len(b.Organs))
+// func (b *Brain) allInputsToAllOutputs() bool {
+// 	result := make([]bool, b.organsCount)
 
-	for i := 0; i < len(b.Organs); i++ {
-		result[i] = b.organInputToOutputs(&b.Organs[i])
-	}
+// 	for i := 0; i < b.organsCount; i++ {
+// 		result[i] = b.organInputToOutputs(&b.Organs[i])
+// 	}
 
-	for i := 0; i < len(result); i++ {
-		if !result[i] {
-			return false
-		}
-	}
+// 	for i := 0; i < len(result); i++ {
+// 		if !result[i] {
+// 			return false
+// 		}
+// 	}
 
-	return true
-}
+// 	return true
+// }
 
-func (b *Brain) organInputToOutputs(organ *Organ) bool {
-	cheked := make(map[*SignalReciever]bool)
+// func (b *Brain) organInputToOutputs(organ *Organ) bool {
+// 	cheked := make(map[*SignalReciever]bool)
 
-	var results []bool = []bool{}
+// 	var results []bool = []bool{}
 
-	for i := 0; i < len(organ.Terminal); i++ {
-		b.neuronInputToOutputs(organ.Terminal[i].Synapse, &cheked, &results)
-	}
+// 	for i := 0; i < len(organ.Terminal); i++ {
+// 		b.neuronInputToOutputs(organ.Terminal[i].Synapse, &cheked, &results)
+// 	}
 
-	for _, result := range results {
-		if result {
-			return true
-		}
-	}
+// 	for _, result := range results {
+// 		if result {
+// 			return true
+// 		}
+// 	}
 
-	return false
-}
+// 	return false
+// }
 
-func (b *Brain) neuronInputToOutputs(sr SignalReciever, cheked *map[*SignalReciever]bool, results *[]bool) {
-	if sr.Type().EqualTo(NewBioTypeMuscle()) {
-		*results = append(*results, true)
-	}
+// func (b *Brain) neuronInputToOutputs(sr SignalReciever, cheked *map[*SignalReciever]bool, results *[]bool) {
+// 	if sr.Type().EqualTo(NewBioTypeMuscle()) {
+// 		*results = append(*results, true)
+// 	}
 
-	(*cheked)[&sr] = true
+// 	(*cheked)[&sr] = true
 
-	for _, conn := range sr.GetAllConnections() {
-		if (*cheked)[&conn] {
-			continue
-		}
+// 	for _, conn := range sr.GetAllConnections() {
+// 		if (*cheked)[&conn] {
+// 			continue
+// 		}
 
-		b.neuronInputToOutputs(conn, cheked, results)
-	}
-}
+// 		b.neuronInputToOutputs(conn, cheked, results)
+// 	}
+// }
 
 func (b *Brain) Tick() {
-	for i := 0; i < len(b.Organs); i++ {
+	for i := 0; i < b.organsCount; i++ {
 		b.Organs[i].ProcessSignals()
 	}
 
@@ -98,17 +105,40 @@ func (b *Brain) Tick() {
 }
 
 func (b *Brain) Run() {
-	startTime := time.Now() // Record the current time (start time)
+	startTime := time.Now()
 
 	for i := 0; i < 60; i++ {
-		b.Tick() // Call the 'Tick' method of the 'Brain' struct
+		b.Tick()
 	}
 
-	endTime := time.Now() // Record the current time (end time)
+	endTime := time.Now()
+	elapsedTime := endTime.Sub(startTime)
+	fmt.Println(elapsedTime)
 
-	elapsedTime := endTime.Sub(startTime) // Calculate the time difference between start and end time
+	var allReached bool = true
+	for _, muscle := range b.Muscles {
+		for _, memCell := range muscle.MuscleMemory {
+			if memCell == 0 {
+				allReached = false
+			}
+		}
+	}
 
-	fmt.Println(elapsedTime, b.Muscles[0].MuscleMemory) // Print the elapsed time
+	fmt.Println("All Muscles reached:", allReached)
+
+	if allReached {
+		b.LoadSignals([]float64{42})
+
+		startTime := time.Now()
+
+		for i := 0; i < 60; i++ {
+			b.Tick()
+		}
+
+		endTime := time.Now()
+		elapsedTime := endTime.Sub(startTime)
+		fmt.Println(elapsedTime)
+	}
 }
 
 func (b *Brain) connectNeurons() {
@@ -126,7 +156,7 @@ func (b *Brain) connectNeurons() {
 }
 
 func (b *Brain) ProcessSignals(signals [][]float64) {
-	if len(signals) != len(b.Organs) {
+	if len(signals) != b.organsCount {
 		panic("Shapes does not match")
 	}
 
@@ -136,14 +166,55 @@ func (b *Brain) ProcessSignals(signals [][]float64) {
 }
 
 func (b *Brain) LoadSignals(signals ...[]float64) {
-	if len(signals) != len(b.Organs) {
+	if len(signals) != b.organsCount {
 		panic("Shapes do not match!")
 	}
 
-	for i := 0; i < len(b.Organs); i++ {
+	for i := 0; i < b.organsCount; i++ {
 		b.Organs[i].LoadSignals(signals[i])
 	}
 
+}
+
+func (b *Brain) IsAllInputsToAllOutputs() bool {
+	b.visited = make(map[SignalReciever]bool)
+
+	for i := 0; i < b.musclesCount; i++ {
+		b.unreachedOuts[i] = &b.Muscles[i]
+	}
+
+	for i := 0; i < b.organsCount; i++ {
+		b.dfsTraversal(&b.Organs[i])
+	}
+
+	defer func() {
+		b.unreachedOuts = make([]*Muscle, b.musclesCount)
+	}()
+
+	return len(b.unreachedOuts) == 0
+}
+
+func (b *Brain) dfsTraversal(sr SignalReciever) {
+	if b.visited[sr] {
+		return
+	}
+
+	b.visited[sr] = true
+
+	// If the SignalReceiver is a Muscle, mark it as reached and remove it from the unreached list.
+	if sr.Type().EqualTo(NewBioTypeMuscle()) {
+		for i, muscle := range b.unreachedOuts {
+			if muscle == sr.(*Muscle) {
+				b.unreachedOuts[i] = b.unreachedOuts[len(b.unreachedOuts)-1]
+				b.unreachedOuts = b.unreachedOuts[:len(b.unreachedOuts)-1]
+				break
+			}
+		}
+	}
+
+	for _, conn := range sr.GetAllConnections() {
+		b.dfsTraversal(conn)
+	}
 }
 
 func NewBrain(organShapes, muscleShapes []int, neuronsCount int) *Brain {
@@ -163,23 +234,30 @@ func NewBrain(organShapes, muscleShapes []int, neuronsCount int) *Brain {
 	}
 
 	brain := Brain{
-		Organs:       organs,
-		neuronsCount: neuronsCount,
-		Neurons:      neurons,
-		Muscles:      muscles,
+		musclesCount:  len(muscles),
+		visited:       make(map[SignalReciever]bool),
+		unreachedOuts: make([]*Muscle, len(muscles)),
+		organsCount:   len(organs),
+		Organs:        organs,
+		neuronsCount:  neuronsCount,
+		Neurons:       neurons,
+		Muscles:       muscles,
 	}
 
 	brain.connectOrgansToNeurons()
 	brain.connectMusclesToNeurons()
 
 	for {
-		if !brain.allInputsToAllOutputs() {
+		if !brain.IsAllInputsToAllOutputs() {
+			fmt.Println("not yet") // *debug TODO: delete
 			brain.connectNeurons()
 			continue
 		}
-
+		fmt.Println("here we are") // *debug TODO: delete
 		break
 	}
+
+	brain.connectNeurons()
 
 	return &brain
 }

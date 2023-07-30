@@ -15,9 +15,7 @@ func (m *Muscle) RecieveSignal(signal float64, synapsePort int) {
 }
 
 func (m *Muscle) AddInputConnection(port int) {
-	m.Synapses[port] = Synapse{
-		Bias: -15, // TODO: delete and add neurotransmitters functional
-	}
+	m.Synapses[port] = NewSynapse() // TODO: delete and add neurotransmitters functional
 }
 
 func (m *Muscle) GetAllConnections() []SignalReciever {

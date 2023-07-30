@@ -64,3 +64,7 @@ func (o *Organ) ConnectTo(synapse SignalReciever) {
 		port:    connPort,
 	})
 }
+
+func (o *Organ) AddInputConnection(port int)                    {}
+func (o *Organ) GetFreePort() int                               { return 0 }
+func (o *Organ) RecieveSignal(signal float64, dendritePort int) {}
