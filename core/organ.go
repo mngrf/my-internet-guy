@@ -1,6 +1,7 @@
 package core
 
 type Organ struct {
+	biotype   BioType
 	Shape     int
 	tempStore []float64
 	Terminal  []BioAddr
@@ -32,8 +33,13 @@ func (o *Organ) ProcessSignals() {
 	}
 }
 
+func (o *Organ) Type() BioType {
+	return o.biotype
+}
+
 func NewOrgan(shape int) Organ {
 	return Organ{
+		biotype:  NewBioTypeOrgan(),
 		Shape:    shape,
 		Terminal: []BioAddr{},
 	}

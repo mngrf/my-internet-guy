@@ -47,6 +47,10 @@ func (b *Brain) Tick() {
 	}
 }
 
+// func (b *Brain) EnsureAllInputsOutputs() {
+
+// }
+
 func (b *Brain) Run() {
 	startTime := time.Now() // Record the current time (start time)
 

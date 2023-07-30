@@ -1,6 +1,7 @@
 package core
 
 type Muscle struct {
+	biotype      BioType
 	Shape        int
 	Synapses     map[int]Synapse
 	MuscleMemory map[int]float64
@@ -19,6 +20,10 @@ func (m *Muscle) AddInputConnection(port int) {
 	}
 }
 
+func (m *Muscle) Type() BioType {
+	return m.biotype
+}
+
 func (m *Muscle) GetFreePort() int {
 	// fmt.Println("free port")
 	for i := 0; ; i++ {
@@ -30,8 +35,9 @@ func (m *Muscle) GetFreePort() int {
 
 func NewMuscle(shape int) Muscle {
 	return Muscle{
+		biotype:      NewBioTypeMuscle(),
 		Shape:        shape,
 		Synapses:     map[int]Synapse{},
-		MuscleMemory: make(map[int]float64, shape),
+		MuscleMemory: map[int]float64{},
 	}
 }
