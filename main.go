@@ -12,7 +12,7 @@ func main() {
 	brain := core.NewBrain(
 		[]int{1},
 		[]int{4},
-		500,
+		10_000_000,
 		4,
 	)
 

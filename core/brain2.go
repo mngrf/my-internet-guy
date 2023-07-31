@@ -94,6 +94,14 @@ func (b *Brain) dfsTraversal(sr SignalReciever) {
 	}
 }
 
+func (b *Brain) GenerateNeuronConnections() {
+	for i := 0; i < b.neuronGroupsCount; i++ {
+		for j := 0; j < len(b.NeuronGroups[i]); j++ {
+			b.NeuronGroups[i][j].ConnectTo(&b.NeuronGroups[i][rand.Intn(len(b.NeuronGroups[i]))])
+		}
+	}
+}
+
 func NewBrain(organShapes, muscleShapes []int, neuronsCount, neuronGroupsCount int) *Brain {
 	if neuronGroupsCount > neuronsCount {
 		panic("There are more neuron groups than neurons!")
@@ -160,6 +168,10 @@ func NewBrain(organShapes, muscleShapes []int, neuronsCount, neuronGroupsCount i
 				brain.NeuronGroups[i][rand.Intn(len(brain.NeuronGroups[i]))].ConnectTo(&brain.Muscles[j])
 			}
 		}
+	}
+
+	for !brain.IsAllInputsToAllOutputs() {
+		brain.GenerateNeuronConnections()
 	}
 
 	return &brain
