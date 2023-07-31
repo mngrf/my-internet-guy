@@ -8,7 +8,6 @@ type Muscle struct {
 }
 
 func (m *Muscle) RecieveSignal(signal float64, synapsePort int) {
-	// fmt.Println("Muscle recieved signal!")
 	signal = signal + m.Synapses[synapsePort].Bias
 
 	m.MuscleMemory[synapsePort] = signal

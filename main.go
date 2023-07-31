@@ -6,12 +6,12 @@ import (
 
 func main() {
 	data := []float64{
-		4200000000,
+		42000000000000,
 	}
 
 	brain := core.NewBrain(
 		[]int{len(data)},
-		[]int{2, 3},
+		[]int{1},
 		1_000_000,
 	)
 

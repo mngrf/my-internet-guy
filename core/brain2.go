@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type Brain struct {
+type Brain2 struct {
 	organsCount  int
 	neuronsCount int
 	musclesCount int
@@ -20,7 +20,7 @@ type Brain struct {
 }
 
 // Connects random neuron to each organ's outputs
-func (b *Brain) connectOrgansToNeurons() {
+func (b *Brain2) connectOrgansToNeurons() {
 	neuronsCount := len(b.Neurons)
 
 	for i := 0; i < len(b.Organs); i++ {
@@ -30,7 +30,7 @@ func (b *Brain) connectOrgansToNeurons() {
 	}
 }
 
-func (b *Brain) connectMusclesToNeurons() {
+func (b *Brain2) connectMusclesToNeurons() {
 	neuronsCount := len(b.Neurons)
 
 	for i := 0; i < len(b.Muscles); i++ {
@@ -40,7 +40,7 @@ func (b *Brain) connectMusclesToNeurons() {
 	}
 }
 
-func (b *Brain) Tick() {
+func (b *Brain2) Tick() {
 	for i := 0; i < b.organsCount; i++ {
 		b.Organs[i].ProcessSignals()
 	}
@@ -54,7 +54,7 @@ func (b *Brain) Tick() {
 	// }
 }
 
-func (b *Brain) Run() {
+func (b *Brain2) Run() {
 	startTime := time.Now()
 
 	for i := 0; i < 60; i++ {
@@ -77,7 +77,7 @@ func (b *Brain) Run() {
 	fmt.Println("All Muscles reached:", allReached)
 }
 
-func (b *Brain) connectNeurons() {
+func (b *Brain2) connectNeurons() {
 	neuronsCount := len(b.Neurons)
 
 	if neuronsCount < 2 {
@@ -91,7 +91,7 @@ func (b *Brain) connectNeurons() {
 	}
 }
 
-func (b *Brain) ProcessSignals(signals [][]float64) {
+func (b *Brain2) ProcessSignals(signals [][]float64) {
 	if len(signals) != b.organsCount {
 		panic("Shapes does not match")
 	}
@@ -101,7 +101,7 @@ func (b *Brain) ProcessSignals(signals [][]float64) {
 	}
 }
 
-func (b *Brain) LoadSignals(signals ...[]float64) {
+func (b *Brain2) LoadSignals(signals ...[]float64) {
 	if len(signals) != b.organsCount {
 		panic("Shapes do not match!")
 	}
@@ -112,7 +112,7 @@ func (b *Brain) LoadSignals(signals ...[]float64) {
 
 }
 
-func (b *Brain) IsAllInputsToAllOutputs() bool {
+func (b *Brain2) IsAllInputsToAllOutputs() bool {
 	b.visited = make(map[SignalReciever]bool)
 
 	for i := 0; i < b.musclesCount; i++ {
@@ -130,7 +130,7 @@ func (b *Brain) IsAllInputsToAllOutputs() bool {
 	return len(b.unreachedOuts) == 0
 }
 
-func (b *Brain) dfsTraversal(sr SignalReciever) {
+func (b *Brain2) dfsTraversal(sr SignalReciever) {
 	if b.visited[sr] {
 		return
 	}
@@ -153,7 +153,7 @@ func (b *Brain) dfsTraversal(sr SignalReciever) {
 	}
 }
 
-func NewBrain(organShapes, muscleShapes []int, neuronsCount int) *Brain {
+func NewBrain2(organShapes, muscleShapes []int, neuronsCount int) *Brain2 {
 	organs := make([]Organ, len(organShapes))
 	for i := 0; i < len(organShapes); i++ {
 		organs[i] = NewOrgan(organShapes[i])
@@ -169,7 +169,7 @@ func NewBrain(organShapes, muscleShapes []int, neuronsCount int) *Brain {
 		muscles[i] = NewMuscle(muscleShapes[i])
 	}
 
-	brain := Brain{
+	brain := Brain2{
 		musclesCount:  len(muscles),
 		visited:       make(map[SignalReciever]bool),
 		unreachedOuts: make([]*Muscle, len(muscles)),
