@@ -1,21 +1,20 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/mngrf/my-internet-guy/core"
 )
 
 func main() {
-	data := []float64{
-		42000000000000,
-	}
+	// data := []float64{42}
 
 	brain := core.NewBrain(
-		[]int{len(data)},
 		[]int{1},
-		1_000_000,
+		[]int{4},
+		500,
+		4,
 	)
 
-	brain.LoadSignals(data)
-
-	brain.Run()
+	fmt.Println(brain.IsAllInputsToAllOutputs())
 }

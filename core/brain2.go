@@ -3,120 +3,62 @@ package core
 import (
 	"fmt"
 	"math/rand"
-	"time"
+	"sync"
 )
 
-type Brain2 struct {
-	organsCount  int
-	neuronsCount int
-	musclesCount int
+type Brain struct {
+	organsCount       int
+	neuronsCount      int
+	musclesCount      int
+	neuronGroupsCount int
 
-	Organs  []Organ
-	Neurons []Neuron
-	Muscles []Muscle
+	Organs       []Organ
+	NeuronGroups [][]Neuron
+	Muscles      []Muscle
 
 	visited       map[SignalReciever]bool
 	unreachedOuts []*Muscle
 }
 
-// Connects random neuron to each organ's outputs
-func (b *Brain2) connectOrgansToNeurons() {
-	neuronsCount := len(b.Neurons)
-
-	for i := 0; i < len(b.Organs); i++ {
-		for j := 0; j < b.Organs[i].Shape; j++ {
-			b.Organs[i].ConnectTo(&b.Neurons[rand.Intn(neuronsCount)])
-		}
-	}
-}
-
-func (b *Brain2) connectMusclesToNeurons() {
-	neuronsCount := len(b.Neurons)
-
-	for i := 0; i < len(b.Muscles); i++ {
-		for j := 0; j < b.Muscles[i].Shape; j++ {
-			b.Neurons[rand.Intn(neuronsCount)].ConnectTo(&b.Muscles[i])
-		}
-	}
-}
-
-func (b *Brain2) Tick() {
-	for i := 0; i < b.organsCount; i++ {
-		b.Organs[i].ProcessSignals()
-	}
-
-	for i := 0; i < b.neuronsCount; i++ {
-		b.Neurons[i].Process()
-	}
-
-	// for i := 0; i < len(b.Muscles); i++ {
-	// 	// fmt.Println("muscle buffer: ", b.Muscles[i].MuscleMemory) // TODO: handle muscles buffers
-	// }
-}
-
-func (b *Brain2) Run() {
-	startTime := time.Now()
-
-	for i := 0; i < 60; i++ {
-		b.Tick()
-	}
-
-	endTime := time.Now()
-	elapsedTime := endTime.Sub(startTime)
-	fmt.Println(elapsedTime)
-
-	var allReached bool = true
-	for _, muscle := range b.Muscles {
-		for _, memCell := range muscle.MuscleMemory {
-			if memCell == 0 {
-				allReached = false
-			}
-		}
-	}
-
-	fmt.Println("All Muscles reached:", allReached)
-}
-
-func (b *Brain2) connectNeurons() {
-	neuronsCount := len(b.Neurons)
-
-	if neuronsCount < 2 {
+func (b *Brain) LoadData(signals ...[]float64) {
+	if b.organsCount != len(signals) {
 		return
 	}
 
-	for i := 0; i < neuronsCount; i++ {
-		b.Neurons[i].ConnectTo(
-			&b.Neurons[rand.Intn(neuronsCount)],
-		)
+	for i := 0; i < b.organsCount; i++ {
+		b.Organs[i].tempStore = signals[i]
 	}
 }
 
-func (b *Brain2) ProcessSignals(signals [][]float64) {
-	if len(signals) != b.organsCount {
-		panic("Shapes does not match")
-	}
-
-	for i := 0; i < len(signals); i++ {
+func (b *Brain) ProcessSignals() {
+	for i := 0; i < b.organsCount; i++ {
 		b.Organs[i].ProcessSignals()
 	}
+
+	var wg sync.WaitGroup
+	for i := 0; i < b.neuronGroupsCount; i++ {
+		wg.Add(1)
+
+		go func(neuronsGroup int) {
+			for j := 0; j < len(b.NeuronGroups[neuronsGroup]); j++ {
+				b.NeuronGroups[neuronsGroup][j].Process()
+			}
+
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+
+	for i := 0; i < b.musclesCount; i++ {
+		fmt.Println(b.Muscles[i].MuscleMemory)
+	}
 }
 
-func (b *Brain2) LoadSignals(signals ...[]float64) {
-	if len(signals) != b.organsCount {
-		panic("Shapes do not match!")
-	}
-
-	for i := 0; i < b.organsCount; i++ {
-		b.Organs[i].LoadSignals(signals[i])
-	}
-
-}
-
-func (b *Brain2) IsAllInputsToAllOutputs() bool {
+func (b *Brain) IsAllInputsToAllOutputs() bool {
 	b.visited = make(map[SignalReciever]bool)
 
 	for i := 0; i < b.musclesCount; i++ {
-		b.unreachedOuts[i] = &b.Muscles[i]
+		b.unreachedOuts = append(b.unreachedOuts, &b.Muscles[i])
 	}
 
 	for i := 0; i < b.organsCount; i++ {
@@ -124,20 +66,19 @@ func (b *Brain2) IsAllInputsToAllOutputs() bool {
 	}
 
 	defer func() {
-		b.unreachedOuts = make([]*Muscle, b.musclesCount)
+		b.unreachedOuts = make([]*Muscle, 0)
 	}()
 
 	return len(b.unreachedOuts) == 0
 }
 
-func (b *Brain2) dfsTraversal(sr SignalReciever) {
+func (b *Brain) dfsTraversal(sr SignalReciever) {
 	if b.visited[sr] {
 		return
 	}
 
 	b.visited[sr] = true
 
-	// If the SignalReceiver is a Muscle, mark it as reached and remove it from the unreached list.
 	if sr.Type().EqualTo(NewBioTypeMuscle()) {
 		for i, muscle := range b.unreachedOuts {
 			if muscle == sr.(*Muscle) {
@@ -153,47 +94,73 @@ func (b *Brain2) dfsTraversal(sr SignalReciever) {
 	}
 }
 
-func NewBrain2(organShapes, muscleShapes []int, neuronsCount int) *Brain2 {
-	organs := make([]Organ, len(organShapes))
-	for i := 0; i < len(organShapes); i++ {
-		organs[i] = NewOrgan(organShapes[i])
+func NewBrain(organShapes, muscleShapes []int, neuronsCount, neuronGroupsCount int) *Brain {
+	if neuronGroupsCount > neuronsCount {
+		panic("There are more neuron groups than neurons!")
 	}
 
-	neurons := make([]Neuron, neuronsCount)
-	for i := 0; i < neuronsCount; i++ {
-		neurons[i] = NewNeuron()
+	brain := Brain{
+		organsCount:       len(organShapes),
+		musclesCount:      len(muscleShapes),
+		neuronsCount:      neuronsCount,
+		neuronGroupsCount: neuronGroupsCount,
+
+		Organs:       make([]Organ, len(organShapes)),
+		Muscles:      make([]Muscle, len(muscleShapes)),
+		NeuronGroups: make([][]Neuron, neuronGroupsCount),
+
+		visited:       map[SignalReciever]bool{},
+		unreachedOuts: []*Muscle{},
 	}
 
-	muscles := make([]Muscle, len(muscleShapes))
-	for i := 0; i < len(muscleShapes); i++ {
-		muscles[i] = NewMuscle(muscleShapes[i])
-	}
-
-	brain := Brain2{
-		musclesCount:  len(muscles),
-		visited:       make(map[SignalReciever]bool),
-		unreachedOuts: make([]*Muscle, len(muscles)),
-		organsCount:   len(organs),
-		Organs:        organs,
-		neuronsCount:  neuronsCount,
-		Neurons:       neurons,
-		Muscles:       muscles,
-	}
-
-	brain.connectOrgansToNeurons()
-	brain.connectMusclesToNeurons()
-
-	for {
-		if !brain.IsAllInputsToAllOutputs() {
-			fmt.Println("not yet") // *debug TODO: delete
-			brain.connectNeurons()
+	// Create neurons in groups
+	neuronsInGroup := neuronsCount / neuronGroupsCount
+	neuronsInGroupRemainder := neuronsCount % neuronGroupsCount
+	for i := 0; i < neuronGroupsCount; i++ {
+		if i == neuronGroupsCount-1 {
+			brain.NeuronGroups[i] = make([]Neuron, neuronsInGroup+neuronsInGroupRemainder)
 			continue
 		}
-		fmt.Println("here we are") // *debug TODO: delete
-		break
+
+		brain.NeuronGroups[i] = make([]Neuron, neuronsInGroup)
 	}
 
-	brain.connectNeurons()
+	for i := 0; i < neuronGroupsCount; i++ {
+		if i == neuronGroupsCount-1 {
+			for j := 0; j < neuronsInGroup+neuronsInGroupRemainder; j++ {
+				brain.NeuronGroups[i][j] = NewNeuron()
+			}
+		}
+		for j := 0; j < neuronsInGroup; j++ {
+			brain.NeuronGroups[i][j] = NewNeuron()
+		}
+	}
+
+	// Create organs
+	for i := 0; i < brain.organsCount; i++ {
+		brain.Organs[i] = NewOrgan(organShapes[i])
+	}
+
+	// Create muscles
+	for i := 0; i < brain.musclesCount; i++ {
+		brain.Muscles[i] = NewMuscle(muscleShapes[i])
+	}
+
+	// Connect organs and muscles to neurons
+	for i := 0; i < neuronGroupsCount; i++ {
+		for j := 0; j < brain.organsCount; j++ {
+			for x := 0; x < organShapes[j]; x++ {
+				brain.Organs[j].ConnectTo(&brain.NeuronGroups[i][rand.Intn(len(brain.NeuronGroups[i]))])
+			}
+		}
+	}
+	for i := 0; i < neuronGroupsCount; i++ {
+		for j := 0; j < brain.musclesCount; j++ {
+			for x := 0; x < muscleShapes[j]; x++ {
+				brain.NeuronGroups[i][rand.Intn(len(brain.NeuronGroups[i]))].ConnectTo(&brain.Muscles[j])
+			}
+		}
+	}
 
 	return &brain
 }
