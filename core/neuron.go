@@ -11,7 +11,9 @@ type Neuron struct {
 func (n *Neuron) Fire() {
 	// fmt.Println("Fire")
 
-	signal := n.MembranePotential / float64(len(n.Axon.Terminal))
+	// signal := n.MembranePotential / float64(len(n.Axon.Terminal))
+
+	const signal float64 = 10000
 
 	for i := 0; i < len(n.Axon.Terminal); i++ {
 		n.Axon.Terminal[i].Synapse.RecieveSignal(

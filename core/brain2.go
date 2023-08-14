@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"math/rand"
 	"sync"
 )
@@ -20,7 +19,7 @@ type Brain struct {
 	unreachedOuts []*Muscle
 }
 
-func (b *Brain) LoadData(signals ...[]float64) {
+func (b *Brain) LoadSignals(signals ...[]float64) {
 	if b.organsCount != len(signals) {
 		return
 	}
@@ -47,10 +46,11 @@ func (b *Brain) ProcessSignals() {
 			wg.Done()
 		}(i)
 	}
+
 	wg.Wait()
 
 	for i := 0; i < b.musclesCount; i++ {
-		fmt.Println(b.Muscles[i].MuscleMemory)
+		// fmt.Println(b.Muscles[i].MuscleMemory)
 	}
 }
 
