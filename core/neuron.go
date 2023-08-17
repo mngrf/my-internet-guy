@@ -1,23 +1,53 @@
 package core
 
 type Neuron struct {
-	biotype           BioType
-	Dendrites         map[int]Synapse
+	biotype   BioType
+	Dendrites map[int]*Synapse
+	Axon      Axon
+
+	Activity          float64
 	MembranePotential float64
 	Threshold         float64
-	Axon              Axon
+	WellBeingRate     *float64 // or SatisfactionMeter instead of NeurotransmitterLevel, so the agent will have being rated and depends on the rate the agent gets FoodMeter changes
 }
+
+// Конечно, давайте рассмотрим, как все эти факторы могут влиять на работу нейрона в контексте обучения и адаптации:
+
+// Обратная связь:
+
+// Пример 1: Когда нейрон активируется и вызывает активацию соседних нейронов, синаптические связи могут усилиться, улучшая передачу сигнала между ними.
+// Пример 2: Отрицательная обратная связь может снизить силу синапсов и подавить активацию нейрона при получении определенного типа сигнала.
+// Нейромодуляция:
+
+// Пример 1: При высоком уровне нейромедиатора серотонина, синаптическая пластичность может увеличиться, что способствует более эффективному обучению.
+// Пример 2: Влияние ацетилхолина на активацию нейронов может увеличить или уменьшить восприимчивость синапсов в зависимости от текущего контекста.
+// Формирование новых связей:
+
+// Пример 1: При повторном активировании одних и тех же нейронов при обработке новой информации могут формироваться новые синапсы, усиливающие связь между ними.
+// Пример 2: В ответ на обучающий опыт, нейроны могут вырастать новые дендриты, что позволяет им установить дополнительные синаптические связи.
+// Долгосрочная пластичность:
+
+// Пример 1: В процессе обучения, активация конкретных генов может изменить структуру нейрона, что влияет на его функцию на долгий срок.
+// Пример 2: Длительное воздействие стресса может привести к изменениям в генетической экспрессии, влияя на работу нейрона и синапсов.
+// Структурная пластичность:
+
+// Пример 1: После обучения нейрон может создать новые аксоны, образуя связи с ранее несвязанными нейронами, что расширяет его сетевые возможности.
+// Пример 2: Изменение геометрии нейрона может повысить его чувствительность к определенным типам входных сигналов.
+// Сетевая динамика:
+
+// Пример 1: Обучение может привести к синхронизации активации нейронов в определенных паттернах, что улучшает их совместную работу.
+// Пример 2: Адаптация сетевой динамики может позволить нейронам эффективнее реагировать на разнообразные комбинации входных сигналов.
 
 func (n *Neuron) Fire() {
 	// fmt.Println("Fire")
 
 	// signal := n.MembranePotential / float64(len(n.Axon.Terminal))
 
-	const signal float64 = 10000
+	const signal float64 = 10
 
 	for i := 0; i < len(n.Axon.Terminal); i++ {
 		n.Axon.Terminal[i].Synapse.RecieveSignal(
-			signal,
+			signal+n.Activity,
 			n.Axon.Terminal[i].port,
 		)
 	}
@@ -57,14 +87,32 @@ func (n *Neuron) ConnectTo(synapse SignalReciever) {
 }
 
 func (n *Neuron) Process() {
-	if n.MembranePotential > n.Threshold {
+	// TEST DUNGEROUS TODO DELETE OR CHANGE OR WHATEVER IT IS NOT COMPLETE AAAAAAAA
+	for index, _ := range n.Dendrites {
+		n.Dendrites[index].Update(-1)
+	}
+
+	if n.MembranePotential+*n.WellBeingRate > n.Threshold-n.Activity {
+		n.Activity += 2
 		n.Fire()
+	} else {
+		n.Activity -= 1
+	}
+
+	if n.Activity > 6 {
+		n.Activity = 6
+	}
+
+	if n.Activity < 6 {
+		n.Activity = -6
 	}
 }
 
 func (n *Neuron) RecieveSignal(signal float64, dendritePort int) {
 	// fmt.Println("Neuron recieved signal", signal)
-	signal = signal + n.Dendrites[dendritePort].Bias
+	signal = signal + n.Dendrites[dendritePort].Strength
+
+	n.Dendrites[dendritePort].Update(2)
 
 	n.MembranePotential += signal
 }
@@ -73,13 +121,14 @@ func (n *Neuron) Type() BioType {
 	return n.biotype
 }
 
-func NewNeuron() Neuron {
+func NewNeuron(wellBeingRate *float64) Neuron {
 	return Neuron{
 		biotype:           NewBioTypeNeuron(),
-		Dendrites:         make(map[int]Synapse),
+		Dendrites:         make(map[int]*Synapse),
 		MembranePotential: 0,
-		Threshold:         42,
+		Threshold:         16,
 		Axon:              NewAxon(),
+		WellBeingRate:     wellBeingRate,
 	}
 }
 
@@ -92,12 +141,25 @@ func (n *Neuron) GetFreePort() int {
 }
 
 type Synapse struct {
-	Bias float64
+	Strength float64
 }
 
-func NewSynapse() Synapse {
-	return Synapse{
-		Bias: 0,
+func (s *Synapse) Update(bias float64) {
+
+	s.Strength += bias
+
+	if s.Strength > 5 {
+		s.Strength = 5
+	}
+
+	if s.Strength < 5 {
+		s.Strength = -5
+	}
+}
+
+func NewSynapse() *Synapse {
+	return &Synapse{
+		Strength: 0,
 	}
 }
 
@@ -108,7 +170,7 @@ type Axon struct {
 
 func NewAxon() Axon {
 	return Axon{
-		Bias:     0,
+		Bias:     3,
 		Terminal: []BioAddr{},
 	}
 }

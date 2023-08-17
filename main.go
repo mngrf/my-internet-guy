@@ -8,25 +8,29 @@ import (
 )
 
 func main() {
-	data := []float64{420000}
+	data := []float64{42}
 
 	brain := core.NewBrain(
 		[]int{1},
 		[]int{1},
-		1_000_000,
-		10,
+		100_000,
+		1000,
 	)
-
+	brain.GenerateNeuronConnections()
+	brain.GenerateNeuronConnections()
 	brain.GenerateNeuronConnections()
 
 	fmt.Println(brain.IsAllInputsToAllOutputs())
 
-	start := time.Now()
-	brain.LoadSignals(data)
+	minuteStart := time.Now()
 	for i := 0; i < 60; i++ {
-		brain.ProcessSignals()
+		brain.LoadSignals(data)
+		for i := 0; i < 60; i++ {
+			brain.ProcessSignals()
+		}
 	}
-	end := time.Now()
+	minuteEnd := time.Since(minuteStart)
+	fmt.Println("minute:", minuteEnd)
 
-	fmt.Println(end.Sub(start))
+	fmt.Println(brain.Muscles[0].MuscleMemory[0])
 }

@@ -11,12 +11,16 @@ type Brain struct {
 	musclesCount      int
 	neuronGroupsCount int
 
-	Organs       []Organ
-	NeuronGroups [][]Neuron
-	Muscles      []Muscle
+	Organs                 []Organ
+	NeuronGroups           [][]Neuron
+	Muscles                []Muscle
+	LastNeuronGroupsLength int
+	NeuronGroupsLength     int
 
 	visited       map[SignalReciever]bool
 	unreachedOuts []*Muscle
+
+	WellBeingRate float64
 }
 
 func (b *Brain) LoadSignals(signals ...[]float64) {
@@ -35,17 +39,26 @@ func (b *Brain) ProcessSignals() {
 	}
 
 	var wg sync.WaitGroup
-	for i := 0; i < b.neuronGroupsCount; i++ {
+	for i := 0; i < b.neuronGroupsCount-1; i++ {
 		wg.Add(1)
 
 		go func(neuronsGroup int) {
-			for j := 0; j < len(b.NeuronGroups[neuronsGroup]); j++ {
+			for j := 0; j < b.NeuronGroupsLength; j++ {
 				b.NeuronGroups[neuronsGroup][j].Process()
 			}
 
 			wg.Done()
 		}(i)
 	}
+
+	wg.Add(1)
+	go func() {
+		for j := 0; j < b.LastNeuronGroupsLength; j++ {
+			b.NeuronGroups[b.neuronGroupsCount-1][j].Process()
+		}
+
+		wg.Done()
+	}()
 
 	wg.Wait()
 
@@ -119,11 +132,17 @@ func NewBrain(organShapes, muscleShapes []int, neuronsCount, neuronGroupsCount i
 
 		visited:       map[SignalReciever]bool{},
 		unreachedOuts: []*Muscle{},
+
+		WellBeingRate: 10,
 	}
 
 	// Create neurons in groups
 	neuronsInGroup := neuronsCount / neuronGroupsCount
 	neuronsInGroupRemainder := neuronsCount % neuronGroupsCount
+
+	brain.LastNeuronGroupsLength = neuronsInGroup + neuronsInGroupRemainder
+	brain.NeuronGroupsLength = neuronsInGroup
+
 	for i := 0; i < neuronGroupsCount; i++ {
 		if i == neuronGroupsCount-1 {
 			brain.NeuronGroups[i] = make([]Neuron, neuronsInGroup+neuronsInGroupRemainder)
@@ -133,14 +152,15 @@ func NewBrain(organShapes, muscleShapes []int, neuronsCount, neuronGroupsCount i
 		brain.NeuronGroups[i] = make([]Neuron, neuronsInGroup)
 	}
 
+	brainLivingStateptr := &brain.WellBeingRate
 	for i := 0; i < neuronGroupsCount; i++ {
 		if i == neuronGroupsCount-1 {
 			for j := 0; j < neuronsInGroup+neuronsInGroupRemainder; j++ {
-				brain.NeuronGroups[i][j] = NewNeuron()
+				brain.NeuronGroups[i][j] = NewNeuron(brainLivingStateptr)
 			}
 		}
 		for j := 0; j < neuronsInGroup; j++ {
-			brain.NeuronGroups[i][j] = NewNeuron()
+			brain.NeuronGroups[i][j] = NewNeuron(brainLivingStateptr)
 		}
 	}
 

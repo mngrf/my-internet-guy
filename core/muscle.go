@@ -3,12 +3,12 @@ package core
 type Muscle struct {
 	biotype      BioType
 	Shape        int
-	Synapses     map[int]Synapse
+	Synapses     map[int]*Synapse
 	MuscleMemory map[int]float64
 }
 
 func (m *Muscle) RecieveSignal(signal float64, synapsePort int) {
-	signal = signal + m.Synapses[synapsePort].Bias
+	signal = signal + m.Synapses[synapsePort].Strength
 
 	m.MuscleMemory[synapsePort] = signal
 }
@@ -38,7 +38,7 @@ func NewMuscle(shape int) Muscle {
 	return Muscle{
 		biotype:      NewBioTypeMuscle(),
 		Shape:        shape,
-		Synapses:     map[int]Synapse{},
+		Synapses:     map[int]*Synapse{},
 		MuscleMemory: map[int]float64{},
 	}
 }
