@@ -6,23 +6,26 @@ type Neuron struct {
 	MembranePotential float64
 	Threshold         float64
 	Axon              Axon
+
+	// Experimental
+	LearningRate *float64
+	Serotonin    *float64
+	Activity     float64
 }
 
 func (n *Neuron) Fire() {
-	// fmt.Println("Fire")
+	n.Activity += 2
 
-	// signal := n.MembranePotential / float64(len(n.Axon.Terminal))
-
-	const signal float64 = 10000
+	const signal float64 = 25
 
 	for i := 0; i < len(n.Axon.Terminal); i++ {
 		n.Axon.Terminal[i].Synapse.RecieveSignal(
-			signal,
+			signal+(n.Activity*(*n.LearningRate)),
 			n.Axon.Terminal[i].port,
 		)
 	}
 
-	n.MembranePotential = 0
+	n.MembranePotential = -10
 }
 
 func (n *Neuron) AddInputConnection(port int) {
@@ -57,13 +60,14 @@ func (n *Neuron) ConnectTo(synapse SignalReciever) {
 }
 
 func (n *Neuron) Process() {
-	if n.MembranePotential > n.Threshold {
+	n.Activity -= 1
+
+	if n.MembranePotential > n.Threshold+*n.Serotonin {
 		n.Fire()
 	}
 }
 
 func (n *Neuron) RecieveSignal(signal float64, dendritePort int) {
-	// fmt.Println("Neuron recieved signal", signal)
 	signal = signal + n.Dendrites[dendritePort].Bias
 
 	n.MembranePotential += signal
@@ -73,13 +77,15 @@ func (n *Neuron) Type() BioType {
 	return n.biotype
 }
 
-func NewNeuron() Neuron {
+func NewNeuron(learningRate *float64, serotonin *float64) Neuron {
 	return Neuron{
 		biotype:           NewBioTypeNeuron(),
 		Dendrites:         make(map[int]Synapse),
 		MembranePotential: 0,
 		Threshold:         42,
 		Axon:              NewAxon(),
+		LearningRate:      learningRate,
+		Serotonin:         serotonin,
 	}
 }
 

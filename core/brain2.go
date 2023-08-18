@@ -17,6 +17,9 @@ type Brain struct {
 
 	visited       map[SignalReciever]bool
 	unreachedOuts []*Muscle
+
+	LearningRate float64
+	Serotonin    float64
 }
 
 func (b *Brain) LoadSignals(signals ...[]float64) {
@@ -102,7 +105,7 @@ func (b *Brain) GenerateNeuronConnections() {
 	}
 }
 
-func NewBrain(organShapes, muscleShapes []int, neuronsCount, neuronGroupsCount int) *Brain {
+func NewBrain(organShapes, muscleShapes []int, neuronsCount, neuronGroupsCount int, learningRate float64) *Brain {
 	if neuronGroupsCount > neuronsCount {
 		panic("There are more neuron groups than neurons!")
 	}
@@ -119,6 +122,9 @@ func NewBrain(organShapes, muscleShapes []int, neuronsCount, neuronGroupsCount i
 
 		visited:       map[SignalReciever]bool{},
 		unreachedOuts: []*Muscle{},
+
+		LearningRate: learningRate,
+		Serotonin:    0, // -10 to 10 // dynamicaly changes
 	}
 
 	// Create neurons in groups
@@ -136,11 +142,11 @@ func NewBrain(organShapes, muscleShapes []int, neuronsCount, neuronGroupsCount i
 	for i := 0; i < neuronGroupsCount; i++ {
 		if i == neuronGroupsCount-1 {
 			for j := 0; j < neuronsInGroup+neuronsInGroupRemainder; j++ {
-				brain.NeuronGroups[i][j] = NewNeuron()
+				brain.NeuronGroups[i][j] = NewNeuron(&brain.LearningRate, &brain.Serotonin) //////////////////////////////////////////////////
 			}
 		}
 		for j := 0; j < neuronsInGroup; j++ {
-			brain.NeuronGroups[i][j] = NewNeuron()
+			brain.NeuronGroups[i][j] = NewNeuron(&brain.LearningRate, &brain.Serotonin)
 		}
 	}
 

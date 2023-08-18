@@ -8,13 +8,14 @@ import (
 )
 
 func main() {
-	data := []float64{420000}
+	data := []float64{60}
 
 	brain := core.NewBrain(
-		[]int{1},
-		[]int{1},
-		1_000_000,
-		10,
+		[]int{1},  // sensors/organs
+		[]int{1},  // muscles
+		1_000_000, // num of a neurons
+		1000,      //neuron sections
+		1,         // learning rate
 	)
 
 	brain.GenerateNeuronConnections()
@@ -22,9 +23,11 @@ func main() {
 	fmt.Println(brain.IsAllInputsToAllOutputs())
 
 	start := time.Now()
-	brain.LoadSignals(data)
-	for i := 0; i < 60; i++ {
-		brain.ProcessSignals()
+	for j := 0; j < 60; j++ {
+		brain.LoadSignals(data)
+		for i := 0; i < 60; i++ {
+			brain.ProcessSignals()
+		}
 	}
 	end := time.Now()
 
